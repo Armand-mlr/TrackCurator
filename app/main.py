@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from app.routers import tracks
+from app.routers import crates
 
 app = FastAPI(
     title="TrackCurator API",
@@ -7,6 +8,7 @@ app = FastAPI(
     version="0.1.0",
 )
 app.include_router(tracks.router)
+app.include_router(crates.router)
 
 
 @app.get("/health", tags=["system"])
