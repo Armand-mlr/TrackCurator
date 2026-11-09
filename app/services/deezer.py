@@ -1,7 +1,11 @@
 import httpx
+import time
 
 BASE = "https://api.deezer.com"
 TIMEOUT = httpx.Timeout(5.0, connect=3.0)
+
+_CACHE: dict[str, tuple[float, list[dict]]] = {}
+TTL = 300  # secondes
 
 class DeezerError(Exception):
     pass
@@ -47,6 +51,16 @@ async def track_detail(deezer_id: int) -> dict:
         "duree_s": item.get("duration"),
         "bpm": int(bpm) if bpm else None,
     }
+
+async def search_cached(query: str, limit: int = 10) -> list[dict]:
+    cle = f"{query}:{limit}"
+    hit = _CACHE.get(cle)
+    if hit and time.time() - hit[0] < TTL:
+        return hit[1]
+
+    resultats = await search(query, limit)
+    _CACHE[cle] = (time.time(), resultats)
+    return resultats
 
 if __name__ == "__main__":
     import asyncio
